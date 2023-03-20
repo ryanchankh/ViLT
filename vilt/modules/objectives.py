@@ -441,6 +441,23 @@ def compute_irtr(pl_module, batch):
     return ret
 
 
+def compute_cls(pl_module, batch):
+    infer = pl_module.infer(batch, mask_text=False, mask_image=False)
+    cls_logits = pl_module.cls_classifier(infer["cls_feats"])
+
+    cls_loss = F.binary_cross_entropy_with_logits(cls_logits, cls_targets)
+    ret = {
+       "cls_loss": cls_loss,
+       "cls_logits": cls_logits,
+       "cls_targets": cls_targets
+    }
+
+    phase = "train" if pl_module.training else "val"
+    loss = getattr(pl_module, f"{phase}_cls_loss")(ret["cls_loss"])
+    pl_module.log(f"vqa/{phase}/loss", loss)
+
+    return ret
+
 @torch.no_grad()
 def compute_irtr_recall(pl_module):
     text_dset = pl_module.trainer.datamodule.dms[0].make_no_false_val_dset()

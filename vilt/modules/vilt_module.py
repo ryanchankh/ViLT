@@ -213,6 +213,10 @@ class ViLTransformerSS(pl.LightningModule):
         if "irtr" in self.current_tasks:
             ret.update(objectives.compute_irtr(self, batch))
 
+        # Image Classification
+        if "cls" in self.current_tasks:
+            ret.update(objectives.compute_cls(self, batch))
+
         return ret
 
     def training_step(self, batch, batch_idx):
